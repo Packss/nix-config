@@ -64,6 +64,7 @@ in
   services.fstrim.enable = true;
   programs.fuse.enable = true;
   services.udisks2.enable = true;
+  programs.gnome-disks.enable = true;
   programs.appimage = {
     enable = true;
     binfmt = true;
