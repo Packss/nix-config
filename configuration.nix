@@ -236,6 +236,7 @@ in
     brightnessctl
     xwayland-satellite
     distrobox
+    wl-clipboard-rs
   ];
   services.flatpak.enable = true;
 
