@@ -61,8 +61,8 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1772736160,
-        "narHash": "sha256-uUxFljYA0okJCfAoU2wpicz3sxb5kax5ab9rD0nUWWE=",
+        "lastModified": 1772737092,
+        "narHash": "sha256-1vPQOG5Snu0RkS3mWDzCP5naYAj0JrjHrOn9NPt6V7E=",
         "path": "/mnt/projects/build/linux-nitrosense-rust",
         "type": "path"
       },
