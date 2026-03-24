@@ -283,6 +283,14 @@ in
       enableRenice = true;
     };
   };
+  services.wivrn = {
+    enable = true;
+    autoStart = true;
+    highPriority = true;
+    openFirewall = true;
+    defaultRuntime = true;
+    steam.importOXRRuntimes = true;
+  };
 
   programs.niri.enable = true;
   programs.dms-shell = {
