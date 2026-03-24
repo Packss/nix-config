@@ -24,14 +24,69 @@ in
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.initrd.systemd.enable = true;
 
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages;
   boot.kernelParams = [
     "acpi_backlight=native"
+    "zswap.enabled=1"
+    "zswap.max_pool_percent=20"
+    "zswap.shrinker_enabled=1"
   ];
 
-  zramSwap.enable = true;
+  services.udev.extraRules = ''
+    KERNEL=="event[0-9]*", SUBSYSTEM=="input", SUBSYSTEMS=="input", ATTRS{uniq}=="ce:da:84:14:a5:40", SYMLINK+="input/by-id/bluetooth-sofle-keyboard"
+  '';
+  services.logind.settings.Login = {
+    KillUserProcesses = false;
+  };
+  specialisation = {
+    passthrough.configuration = {
+      boot.initrd.kernelModules = [
+        "vfio_pci"
+        "vfio"
+        "mdev"
+        "vfio_iommu_type1"
+      ];
+      boot.kernelParams = [
+        "amd_iommu=on"
+        "iommu=pt"
+        "vfio_pci"
+        "vfio"
+        "mdev"
+        "vfio-pci.ids=10de:24a0,10de:228b"
+      ];
+
+      virtualisation.spiceUSBRedirection.enable = true;
+      virtualisation.libvirtd = {
+        enable = true;
+        qemu = {
+          package = pkgs.qemu_kvm;
+          runAsRoot = true;
+          swtpm.enable = true;
+        };
+      };
+      systemd.tmpfiles.rules = [
+        ''f /dev/shm/kvmfr-* 0660 "enzo" kvm -''
+      ];
+      services.persistent-evdev = {
+        enable = true;
+        devices = {
+          sofle-keyboard = "bluetooth-sofle-keyboard";
+          ajazz-mouse1 = "usb-Compx_AJAZZ_2.4G-if02-event-mouse";
+          g29-wheel = "usb-Logitech_G29_Driving_Force_Racing_Wheel-event-joystick";
+        };
+      };
+    };
+  };
+
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 16 * 1024;
+    }
+  ];
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
@@ -47,7 +102,15 @@ in
     powerManagement.finegrained = true;
     open = true;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.latest;
+    #package = config.boot.kernelPackages.nvidiaPackages.beta;
+    package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+      version = "595.45.04";
+      sha256_64bit = "sha256-zUllSSRsuio7dSkcbBTuxF+dN12d6jEPE0WgGvVOj14=";
+      sha256_aarch64 = "sha256-jl6lQWsgF6ya22sAhYPpERJ9r+wjnWzbGnINDpUMzsk=";
+      openSha256 = "sha256-uqNfImwTKhK8gncUdP1TPp0D6Gog4MSeIJMZQiJWDoE=";
+      settingsSha256 = "sha256-Y45pryyM+6ZTJyRaRF3LMKaiIWxB5gF5gGEEcQVr9nA=";
+      persistencedSha256 = "sha256-5FoeUaRRMBIPEWGy4Uo0Aho39KXmjzQsuAD9m/XkNpA=";
+    };
   };
   hardware.nvidia.prime = {
     offload = {
@@ -72,14 +135,20 @@ in
   programs.virt-manager.enable = true;
   virtualisation = {
     containers.enable = true;
-    libvirtd.enable = true;
     podman = {
       enable = true;
       dockerCompat = true;
       defaultNetwork.settings.dns_enable = true;
     };
   };
-  fileSystems."/".options = [ "noatime" ];
+  fileSystems."/".options = [
+    "noatime"
+    "compress=zstd"
+  ];
+  fileSystems."/home".options = [
+    "noatime"
+    "compress=zstd"
+  ];
   fileSystems."/mnt/games" = {
     device = "/dev/disk/by-uuid/4eb277c2-bfa6-4a7a-9b27-ef4d43b1f8ff";
     fsType = "btrfs";
@@ -123,6 +192,9 @@ in
   # Set your time zone.
   time.timeZone = "America/Sao_Paulo";
   time.hardwareClockInLocalTime = true;
+  environment.sessionVariables = {
+    TZ = "America/Sao_Paulo";
+  };
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -136,8 +208,7 @@ in
   };
 
   # Configure keymap in X11
-  services.xserver.xkb.layout = "br";
-  services.xserver.xkb.options = "caps:swapescape";
+  services.xserver.xkb.layout = "us";
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -155,6 +226,19 @@ in
   services.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.users.samira = {
+    isNormalUser = true;
+    extraGroups = [
+      "i2c"
+      "wheel"
+      "input"
+      "networkmanager"
+      "plugdev"
+      "libvirtd"
+      "kvm"
+      "video"
+    ];
+  };
   users.users.enzo = {
     isNormalUser = true;
     extraGroups = [
@@ -163,6 +247,11 @@ in
       "input"
       "networkmanager"
       "plugdev"
+      "libvirtd"
+      "kvm"
+      "video"
+      "render"
+      "uinput"
     ]; # Enable ‘sudo’ for the user.
   };
 
@@ -236,7 +325,9 @@ in
     brightnessctl
     xwayland-satellite
     distrobox
+    crun
     wl-clipboard-rs
+    oversteer
   ];
   services.flatpak.enable = true;
 
@@ -285,6 +376,7 @@ in
     nssmdns4 = true;
     nssmdns6 = true;
     publish.enable = true;
+    publish.userServices = true;
   };
 
   # Open ports in the firewall.
