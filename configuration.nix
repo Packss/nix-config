@@ -38,9 +38,6 @@ in
   services.udev.extraRules = ''
     KERNEL=="event[0-9]*", SUBSYSTEM=="input", SUBSYSTEMS=="input", ATTRS{uniq}=="ce:da:84:14:a5:40", SYMLINK+="input/by-id/bluetooth-sofle-keyboard"
   '';
-  services.logind.settings.Login = {
-    KillUserProcesses = false;
-  };
   specialisation = {
     passthrough.configuration = {
       boot.initrd.kernelModules = [
@@ -87,6 +84,7 @@ in
       size = 16 * 1024;
     }
   ];
+
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
@@ -133,11 +131,16 @@ in
     binfmt = true;
   };
   programs.virt-manager.enable = true;
+  hardware.nvidia-container-toolkit.enable = true;
   virtualisation = {
     containers.enable = true;
+    docker = {
+      enable = true;
+      enableNvidia = true;
+      rootless.enable = true;
+    };
     podman = {
       enable = true;
-      dockerCompat = true;
       defaultNetwork.settings.dns_enable = true;
     };
   };
@@ -322,6 +325,7 @@ in
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
+    waypipe
     qemu
     ryzenadj
     ddcutil
@@ -358,6 +362,21 @@ in
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+  # 1. Enable the service and the firewall
+  services.tailscale.enable = true;
+  networking.nftables.enable = true;
+
+  # 2. Force tailscaled to use nftables (Critical for clean nftables-only systems)
+  # This avoids the "iptables-compat" translation layer issues.
+  systemd.services.tailscaled.serviceConfig.Environment = [
+    "TS_DEBUG_FIREWALL_MODE=nftables"
+  ];
+
+  # 3. Optimization: Prevent systemd from waiting for network online
+  # (Optional but recommended for faster boot with VPNs)
+  systemd.network.wait-online.enable = false;
+  boot.initrd.systemd.network.wait-online.enable = false;
+
   services.upower.enable = true;
   services.scx = {
     enable = true;
@@ -394,6 +413,8 @@ in
   # networking.firewall.enable = false;
   networking.firewall = {
     enable = true;
+    trustedInterfaces = [ "tailscale0" ];
+    allowedUDPPorts = [ config.services.tailscale.port ];
     allowedTCPPortRanges = [
       {
         from = 1714;
