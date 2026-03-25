@@ -10,23 +10,20 @@ let
   home-manager = builtins.fetchTarball "https://github.com/nix-community/home-manager/archive/master.tar.gz";
 in
 {
-  imports = [
-    # Include the results of the hardware scan.
-    ./hardware-configuration.nix
-  ];
+  # --- Configurações do Nix e Sistema Base ---
+  imports = [ ./hardware-configuration.nix ];
 
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
   ];
   nixpkgs.config.allowUnfree = true;
+  system.stateVersion = "25.11";
 
-  # Use the systemd-boot EFI boot loader.
+  # --- Boot e Kernel ---
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.systemd.enable = true;
-
-  # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages;
   boot.kernelParams = [
     "acpi_backlight=native"
@@ -35,61 +32,13 @@ in
     "zswap.shrinker_enabled=1"
   ];
 
-  services.udev.extraRules = ''
-    KERNEL=="event[0-9]*", SUBSYSTEM=="input", SUBSYSTEMS=="input", ATTRS{uniq}=="ce:da:84:14:a5:40", SYMLINK+="input/by-id/bluetooth-sofle-keyboard"
-  '';
-  specialisation = {
-    passthrough.configuration = {
-      boot.initrd.kernelModules = [
-        "vfio_pci"
-        "vfio"
-        "mdev"
-        "vfio_iommu_type1"
-      ];
-      boot.kernelParams = [
-        "amd_iommu=on"
-        "iommu=pt"
-        "vfio_pci"
-        "vfio"
-        "mdev"
-        "vfio-pci.ids=10de:24a0,10de:228b"
-      ];
-
-      virtualisation.spiceUSBRedirection.enable = true;
-      virtualisation.libvirtd = {
-        enable = true;
-        qemu = {
-          package = pkgs.qemu_kvm;
-          runAsRoot = true;
-          swtpm.enable = true;
-        };
-      };
-      systemd.tmpfiles.rules = [
-        ''f /dev/shm/kvmfr-* 0660 "enzo" kvm -''
-      ];
-      services.persistent-evdev = {
-        enable = true;
-        devices = {
-          sofle-keyboard = "bluetooth-sofle-keyboard";
-          ajazz-mouse1 = "usb-Compx_AJAZZ_2.4G-if02-event-mouse";
-          g29-wheel = "usb-Logitech_G29_Driving_Force_Racing_Wheel-event-joystick";
-        };
-      };
-    };
-  };
-
-  swapDevices = [
-    {
-      device = "/var/lib/swapfile";
-      size = 16 * 1024;
-    }
-  ];
-
+  # --- Hardware e Gráficos ---
+  hardware.graphics.enable = true;
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
   };
-  hardware.graphics.enable = true;
+
   services.xserver.videoDrivers = [
     "amdgpu"
     "nvidia"
@@ -100,7 +49,6 @@ in
     powerManagement.finegrained = true;
     open = true;
     nvidiaSettings = true;
-    #package = config.boot.kernelPackages.nvidiaPackages.beta;
     package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
       version = "595.45.04";
       sha256_64bit = "sha256-zUllSSRsuio7dSkcbBTuxF+dN12d6jEPE0WgGvVOj14=";
@@ -110,6 +58,7 @@ in
       persistencedSha256 = "sha256-5FoeUaRRMBIPEWGy4Uo0Aho39KXmjzQsuAD9m/XkNpA=";
     };
   };
+
   hardware.nvidia.prime = {
     offload = {
       enable = true;
@@ -118,32 +67,12 @@ in
     amdgpuBusId = "PCI:116:0:0";
     nvidiaBusId = "PCI:1:0:0";
   };
-  hardware.block.scheduler = {
-    "nvme[0-9]*" = "kyber";
-  };
 
-  services.fstrim.enable = true;
-  programs.fuse.enable = true;
-  services.udisks2.enable = true;
-  programs.gnome-disks.enable = true;
-  programs.appimage = {
-    enable = true;
-    binfmt = true;
-  };
-  programs.virt-manager.enable = true;
-  hardware.nvidia-container-toolkit.enable = true;
-  virtualisation = {
-    containers.enable = true;
-    docker = {
-      enable = true;
-      enableNvidia = true;
-      rootless.enable = true;
-    };
-    podman = {
-      enable = true;
-      defaultNetwork.settings.dns_enable = true;
-    };
-  };
+  services.udev.extraRules = ''
+    KERNEL=="event[0-9]*", SUBSYSTEM=="input", SUBSYSTEMS=="input", ATTRS{uniq}=="ce:da:84:14:a5:40", SYMLINK+="input/by-id/bluetooth-sofle-keyboard"
+  '';
+
+  # --- Armazenamento e File Systems ---
   fileSystems."/".options = [
     "noatime"
     "compress=zstd"
@@ -152,6 +81,7 @@ in
     "noatime"
     "compress=zstd"
   ];
+
   fileSystems."/mnt/games" = {
     device = "/dev/disk/by-uuid/4eb277c2-bfa6-4a7a-9b27-ef4d43b1f8ff";
     fsType = "btrfs";
@@ -168,6 +98,7 @@ in
       "x-gvfs-show"
     ];
   };
+
   fileSystems."/mnt/projects" = {
     device = "/dev/disk/by-uuid/4eb277c2-bfa6-4a7a-9b27-ef4d43b1f8ff";
     fsType = "btrfs";
@@ -184,51 +115,68 @@ in
       "x-gvfs-show"
     ];
   };
-  systemd.tmpfiles.rules = [
-    "d /mnt/games 0755 enzo users -"
+
+  swapDevices = [
+    {
+      device = "/var/lib/swapfile";
+      size = 16 * 1024;
+    }
   ];
-  networking.hostName = "ignis-nix"; # Define your hostname.
 
-  # Configure network connections interactively with nmcli or nmtui.
+  services.fstrim.enable = true;
+  hardware.block.scheduler."nvme[0-9]*" = "kyber";
+  systemd.tmpfiles.rules = [ "d /mnt/games 0755 enzo users -" ];
+
+  # --- Rede e Segurança ---
+  networking.hostName = "ignis-nix";
   networking.networkmanager.enable = true;
+  networking.nftables.enable = true;
 
-  # Set your time zone.
-  time.timeZone = "America/Sao_Paulo";
-  time.hardwareClockInLocalTime = true;
-  environment.sessionVariables = {
-    TZ = "America/Sao_Paulo";
+  services.tailscale.enable = true;
+  systemd.services.tailscaled.serviceConfig.Environment = [ "TS_DEBUG_FIREWALL_MODE=nftables" ];
+  systemd.network.wait-online.enable = false;
+  boot.initrd.systemd.network.wait-online.enable = false;
+
+  services.avahi = {
+    enable = true;
+    hostName = "ignis-nix";
+    openFirewall = true;
+    nssmdns4 = true;
+    nssmdns6 = true;
+    publish.enable = true;
+    publish.userServices = true;
   };
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  networking.firewall = {
+    enable = true;
+    trustedInterfaces = [ "tailscale0" ];
+    allowedUDPPorts = [ config.services.tailscale.port ];
+    allowedTCPPortRanges = [
+      {
+        from = 1714;
+        to = 1764;
+      }
+    ]; # KDE Connect
+    allowedUDPPortRanges = [
+      {
+        from = 1714;
+        to = 1764;
+      }
+    ]; # KDE Connect
+  };
 
-  # Select internationalisation properties.
+  # --- Localização e Internacionalização ---
+  time.timeZone = "America/Sao_Paulo";
+  time.hardwareClockInLocalTime = true;
   i18n.defaultLocale = "pt_BR.UTF-8";
   console = {
     font = "Lat2-Terminus16";
-    useXkbConfig = true; # use xkb.options in tty.
+    useXkbConfig = true;
   };
-
-  # Configure keymap in X11
   services.xserver.xkb.layout = "us";
+  environment.sessionVariables.TZ = "America/Sao_Paulo";
 
-  # Enable CUPS to print documents.
-  services.printing.enable = true;
-
-  # Enable sound.
-  # services.pulseaudio.enable = true;
-  # OR
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    pulse.enable = true;
-  };
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  services.libinput.enable = true;
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # --- Usuários ---
   users.users.samira = {
     isNormalUser = true;
     extraGroups = [
@@ -242,6 +190,7 @@ in
       "video"
     ];
   };
+
   users.users.enzo = {
     isNormalUser = true;
     extraGroups = [
@@ -255,47 +204,31 @@ in
       "video"
       "render"
       "uinput"
-    ]; # Enable ‘sudo’ for the user.
+    ];
   };
 
-  programs = {
-    firefox.enable = true;
-    xwayland.enable = true;
-    dsearch = {
-      enable = true;
-      systemd = {
-        enable = true;
-        target = "default.target";
-      };
-    };
-    gamescope = {
-      enable = true;
-      capSysNice = false;
-    };
-    steam = {
-      enable = true;
-      remotePlay.openFirewall = true;
-      gamescopeSession.enable = true;
-      protontricks.enable = true;
-      extraCompatPackages = with pkgs; [
-        proton-ge-bin
-      ];
-    };
-    gamemode = {
-      enable = true;
-      enableRenice = true;
-    };
-  };
-  services.wivrn = {
+  # --- Serviços do Sistema ---
+  services.printing.enable = true;
+  services.pipewire = {
     enable = true;
-    autoStart = true;
-    highPriority = true;
-    openFirewall = true;
-    defaultRuntime = true;
-    steam.importOXRRuntimes = true;
+    alsa.enable = true;
+    pulse.enable = true;
+  };
+  services.libinput.enable = true;
+  services.upower.enable = true;
+  services.power-profiles-daemon.enable = true;
+  services.scx = {
+    enable = true;
+    scheduler = "scx_bpfland";
   };
 
+  services.openssh.enable = true;
+  services.flatpak.enable = true;
+
+  # --- Interface e Ambiente de Desktop ---
   programs.niri.enable = true;
+  programs.xwayland.enable = true;
+
   programs.dms-shell = {
     enable = true;
     quickshell.package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
@@ -307,7 +240,6 @@ in
     enableVPN = true;
     enableDynamicTheming = true;
     enableAudioWavelength = true;
-    enableCalendarEvents = false;
     enableClipboardPaste = true;
   };
 
@@ -321,16 +253,70 @@ in
     extraPortals = [ pkgs.xdg-desktop-portal-gnome ];
   };
 
+  fonts.packages = with pkgs; [
+    noto-fonts
+    fira-code
+    nerd-fonts.noto
+    nerd-fonts.fira-code
+  ];
+
+  # --- Virtualização e Containers ---
+  virtualisation = {
+    containers.enable = true;
+    docker = {
+      enable = true;
+      enableNvidia = true;
+      rootless.enable = true;
+    };
+    podman = {
+      enable = true;
+      defaultNetwork.settings.dns_enable = true;
+    };
+  };
+
+  programs.virt-manager.enable = true;
+  hardware.nvidia-container-toolkit.enable = true;
+  programs.appimage = {
+    enable = true;
+    binfmt = true;
+  };
+
+  # --- Gaming e Ferramentas ---
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true;
+    gamescopeSession.enable = true;
+    protontricks.enable = true;
+    extraCompatPackages = with pkgs; [ proton-ge-bin ];
+  };
+
+  programs.gamemode = {
+    enable = true;
+    enableRenice = true;
+  };
+  programs.gamescope = {
+    enable = true;
+    capSysNice = false;
+  };
+
+  services.wivrn = {
+    enable = true;
+    autoStart = true;
+    highPriority = true;
+    openFirewall = true;
+    defaultRuntime = true;
+    steam.importOXRRuntimes = true;
+  };
+
+  # --- Pacotes e Wrappers ---
   environment.localBinInPath = true;
-  # List packages installed in system profile.
-  # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
     waypipe
     qemu
     ryzenadj
     ddcutil
     gcc
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    vim
     wget
     foot
     fuzzel
@@ -341,115 +327,48 @@ in
     wl-clipboard-rs
     oversteer
   ];
-  services.flatpak.enable = true;
 
-  fonts.packages = with pkgs; [
-    noto-fonts
-    fira-code
-    nerd-fonts.noto
-    nerd-fonts.fira-code
-  ];
-
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
   programs.gnupg.agent = {
     enable = true;
     enableSSHSupport = true;
   };
 
-  # List services that you want to enable:
+  # --- Especialização: GPU Passthrough ---
+  specialisation.passthrough.configuration = {
+    boot.initrd.kernelModules = [
+      "vfio_pci"
+      "vfio"
+      "mdev"
+      "vfio_iommu_type1"
+    ];
+    boot.kernelParams = [
+      "amd_iommu=on"
+      "iommu=pt"
+      "vfio_pci"
+      "vfio"
+      "mdev"
+      "vfio-pci.ids=10de:24a0,10de:228b"
+    ];
 
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-  # 1. Enable the service and the firewall
-  services.tailscale.enable = true;
-  networking.nftables.enable = true;
-
-  # 2. Force tailscaled to use nftables (Critical for clean nftables-only systems)
-  # This avoids the "iptables-compat" translation layer issues.
-  systemd.services.tailscaled.serviceConfig.Environment = [
-    "TS_DEBUG_FIREWALL_MODE=nftables"
-  ];
-
-  # 3. Optimization: Prevent systemd from waiting for network online
-  # (Optional but recommended for faster boot with VPNs)
-  systemd.network.wait-online.enable = false;
-  boot.initrd.systemd.network.wait-online.enable = false;
-
-  services.upower.enable = true;
-  services.scx = {
-    enable = true;
-    scheduler = "scx_bpfland";
-  };
-  services.power-profiles-daemon.enable = true;
-  services.auto-cpufreq = {
-    enable = false;
-    settings = {
-      battery = {
-        governor = "powersave";
-        turbo = "never";
+    virtualisation.spiceUSBRedirection.enable = true;
+    virtualisation.libvirtd = {
+      enable = true;
+      qemu = {
+        package = pkgs.qemu_kvm;
+        runAsRoot = true;
+        swtpm.enable = true;
       };
-      charger = {
-        governor = "ondemand";
-        turbo = "auto";
+    };
+
+    systemd.tmpfiles.rules = [ ''f /dev/shm/kvmfr-* 0660 "enzo" kvm -'' ];
+
+    services.persistent-evdev = {
+      enable = true;
+      devices = {
+        sofle-keyboard = "bluetooth-sofle-keyboard";
+        ajazz-mouse1 = "usb-Compx_AJAZZ_2.4G-if02-event-mouse";
+        g29-wheel = "usb-Logitech_G29_Driving_Force_Racing_Wheel-event-joystick";
       };
     };
   };
-  services.avahi = {
-    enable = true;
-    hostName = "ignis-nix";
-    openFirewall = true;
-    nssmdns4 = true;
-    nssmdns6 = true;
-    publish.enable = true;
-    publish.userServices = true;
-  };
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-  networking.firewall = {
-    enable = true;
-    trustedInterfaces = [ "tailscale0" ];
-    allowedUDPPorts = [ config.services.tailscale.port ];
-    allowedTCPPortRanges = [
-      {
-        from = 1714;
-        to = 1764;
-      } # KDE Connect
-    ];
-    allowedUDPPortRanges = [
-      {
-        from = 1714;
-        to = 1764;
-      } # KDE Connect
-    ];
-  };
-  # Copy the NixOS configuration file and link it from the resulting system
-  # (/run/current-system/configuration.nix). This is useful in case you
-  # accidentally delete configuration.nix.
-  # system.copySystemConfiguration = true;
-
-  # This option defines the first version of NixOS you have installed on this particular machine,
-  # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
-  #
-  # Most users should NEVER change this value after the initial install, for any reason,
-  # even if you've upgraded your system to a new NixOS release.
-  #
-  # This value does NOT affect the Nixpkgs version your packages and OS are pulled from,
-  # so changing it will NOT upgrade your system - see https://nixos.org/manual/nixos/stable/#sec-upgrading for how
-  # to actually do that.
-  #
-  # This value being lower than the current NixOS release does NOT mean your system is
-  # out of date, out of support, or vulnerable.
-  #
-  # Do NOT change this value unless you have manually inspected all the changes it would make to your configuration,
-  # and migrated your data accordingly.
-  #
-  # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
-  system.stateVersion = "25.11"; # Did you read the comment?
-
 }
