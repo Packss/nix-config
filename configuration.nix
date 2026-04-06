@@ -284,16 +284,40 @@ in
   };
 
   # --- Gaming e Ferramentas ---
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-    gamescopeSession.enable = true;
-    protontricks.enable = true;
-    extraCompatPackages = with pkgs; [
-      proton-ge-bin
-      proton-ge-rtsp-bin
-    ];
-  };
+  programs.steam =
+    let
+      patchedBwrap = pkgs.bubblewrap.overrideAttrs (o: {
+        patches = (o.patches or [ ]) ++ [
+          ./bwrap-cap-nice.patch
+        ];
+      });
+    in
+    {
+      enable = true;
+      remotePlay.openFirewall = true;
+      gamescopeSession.enable = true;
+      protontricks.enable = true;
+      extraCompatPackages = with pkgs; [
+        proton-ge-bin
+        proton-ge-rtsp-bin
+      ];
+      package = pkgs.steam.override {
+        buildFHSEnv = (
+          args:
+          (
+            (pkgs.buildFHSEnv.override {
+              bubblewrap = patchedBwrap;
+            })
+            (
+              args
+              // {
+                extraBwrapArgs = (args.extraBwrapArgs or [ ]) ++ [ "--cap-add ALL" ];
+              }
+            )
+          )
+        );
+      };
+    };
 
   programs.gamemode = {
     enable = true;
