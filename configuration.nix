@@ -289,7 +289,10 @@ in
     remotePlay.openFirewall = true;
     gamescopeSession.enable = true;
     protontricks.enable = true;
-    extraCompatPackages = with pkgs; [ proton-ge-bin ];
+    extraCompatPackages = with pkgs; [
+      proton-ge-bin
+      proton-ge-rtsp-bin
+    ];
   };
 
   programs.gamemode = {
@@ -303,16 +306,18 @@ in
 
   services.wivrn = {
     enable = true;
-    autoStart = true;
     highPriority = true;
     openFirewall = true;
-    defaultRuntime = true;
     steam.importOXRRuntimes = true;
+    package = (pkgs.wivrn.override { cudaSupport = true; });
   };
 
   # --- Pacotes e Wrappers ---
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
+    wayvr
+    android-tools
+    xrizer
     waypipe
     qemu
     ryzenadj

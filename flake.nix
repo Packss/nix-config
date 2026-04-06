@@ -5,6 +5,7 @@
     # i.e. nixos-24.11
     # Use `nix flake update` to update the flake to the latest revision of the chosen release channel.
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
     acer-predator.url = "github:Packss/acer-kb-module-flake";
     # linux-nitrosense.url = "github:Packss/linux-nitrosense-rust";
     linux-nitrosense.url = "path:/mnt/projects/build/linux-nitrosense-rust";
@@ -16,6 +17,7 @@
   outputs =
     {
       nixpkgs,
+      nixpkgs-xr,
       acer-predator,
       linux-nitrosense,
       ...
@@ -32,6 +34,7 @@
           {
             services.linux-nitrosense.enable = true;
           }
+          nixpkgs-xr.nixosModules.nixpkgs-xr
           ./configuration.nix
         ];
       };
