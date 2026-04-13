@@ -133,7 +133,19 @@ in
   networking.networkmanager.enable = true;
   networking.nftables.enable = true;
 
+  networking.nat = {
+    enable = true;
+    externalInterface = "enp3s0";
+    internalInterfaces = [ "wlp4s0" ];
+  };
   services.tailscale.enable = true;
+  services.dnsmasq = {
+    enable = true;
+    settings = {
+      interface = "wlp4s0";
+      dhcp-range = "192.168.10.10,192.168.10.50,12h";
+    };
+  };
   systemd.services.tailscaled.serviceConfig.Environment = [ "TS_DEBUG_FIREWALL_MODE=nftables" ];
   systemd.network.wait-online.enable = false;
   boot.initrd.systemd.network.wait-online.enable = false;
@@ -164,6 +176,13 @@ in
         to = 1764;
       }
     ]; # KDE Connect
+    interfaces."wlp4s0" = {
+      allowedUDPPorts = [
+        53
+        67
+      ];
+      allowedTCPPorts = [ 53 ];
+    };
   };
 
   # --- Localização e Internacionalização ---
@@ -284,40 +303,16 @@ in
   };
 
   # --- Gaming e Ferramentas ---
-  programs.steam =
-    let
-      patchedBwrap = pkgs.bubblewrap.overrideAttrs (o: {
-        patches = (o.patches or [ ]) ++ [
-          ./bwrap-cap-nice.patch
-        ];
-      });
-    in
-    {
-      enable = true;
-      remotePlay.openFirewall = true;
-      gamescopeSession.enable = true;
-      protontricks.enable = true;
-      extraCompatPackages = with pkgs; [
-        proton-ge-bin
-        proton-ge-rtsp-bin
-      ];
-      package = pkgs.steam.override {
-        buildFHSEnv = (
-          args:
-          (
-            (pkgs.buildFHSEnv.override {
-              bubblewrap = patchedBwrap;
-            })
-            (
-              args
-              // {
-                extraBwrapArgs = (args.extraBwrapArgs or [ ]) ++ [ "--cap-add ALL" ];
-              }
-            )
-          )
-        );
-      };
-    };
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true;
+    gamescopeSession.enable = true;
+    protontricks.enable = true;
+    extraCompatPackages = with pkgs; [
+      proton-ge-bin
+      proton-ge-rtsp-bin
+    ];
+  };
 
   programs.gamemode = {
     enable = true;
@@ -357,6 +352,12 @@ in
     crun
     wl-clipboard-rs
     oversteer
+    linux-wifi-hotspot
+    iw
+    haveged
+    hostapd
+    lsfg-vk
+    lsfg-vk-ui
   ];
 
   programs.gnupg.agent = {
