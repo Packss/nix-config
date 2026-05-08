@@ -9,6 +9,10 @@
     acer-predator.url = "github:Packss/acer-kb-module-flake";
     # linux-nitrosense.url = "github:Packss/linux-nitrosense-rust";
     linux-nitrosense.url = "path:/mnt/projects/build/linux-nitrosense-rust";
+    helium = {
+      url = "github:AlvaroParker/helium-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     quickshell = {
       url = "git+https://git.outfoxxed.me/quickshell/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -20,6 +24,7 @@
       nixpkgs-xr,
       acer-predator,
       linux-nitrosense,
+      helium,
       ...
     }@inputs:
     {

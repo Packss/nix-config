@@ -24,16 +24,29 @@ in
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.systemd.enable = true;
-  boot.kernelPackages = pkgs.linuxPackages;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelParams = [
     "acpi_backlight=native"
     "zswap.enabled=1"
     "zswap.max_pool_percent=20"
     "zswap.shrinker_enabled=1"
+    "pcie_aspm=off"
   ];
+  boot.kernelModules = [ "fuse" ];
+
+  boot.extraModprobeConfig = ''
+    options mt7921e disable_aspm=1
+  '';
 
   # --- Hardware e Gráficos ---
-  hardware.graphics.enable = true;
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      libva
+      libva-vdpau-driver
+    ];
+  };
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
@@ -47,15 +60,16 @@ in
     modesetting.enable = true;
     powerManagement.enable = true;
     powerManagement.finegrained = true;
-    open = false;
+    open = true;
     nvidiaSettings = true;
+    #package = config.boot.kernelPackages.nvidiaPackages.
     package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
-      version = "595.58.03";
-      sha256_64bit = "sha256-jA1Plnt5MsSrVxQnKu6BAzkrCnAskq+lVRdtNiBYKfk=";
+      version = "595.71.05";
+      sha256_64bit = "sha256-NiA7iWC35JyKQva6H1hjzeNKBek9KyS3mK8G3YRva4I=";
       sha256_aarch64 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-      openSha256 = "sha256-6LvJyT0cMXGS290Dh8hd9rc+nYZqBzDIlItOFk8S4n8=";
-      settingsSha256 = "sha256-2vLF5Evl2D6tRQJo0uUyY3tpWqjvJQ0/Rpxan3NOD3c=";
-      persistencedSha256 = "sha256-AtjM/ml/ngZil8DMYNH+P111ohuk9mWw5t4z7CHjPWw=";
+      openSha256 = "sha256-Lfz71QWKM6x/jD2B22SWpUi7/og30HRlXg1kL3EWzEw=";
+      settingsSha256 = "sha256-mXnf3jyvznfB3OfKd657rxv0rYHQb/dX/Riw/+N9EKU=";
+      persistencedSha256 = "sha256-Z/6IvEEa/XfZ5F5qoSIPvXJLGtscYVqjFxHZaN/M2Ts=";
     };
   };
 
@@ -68,8 +82,17 @@ in
     nvidiaBusId = "PCI:1:0:0";
   };
 
+  services.lact.enable = true;
+
   services.udev.extraRules = ''
     KERNEL=="event[0-9]*", SUBSYSTEM=="input", SUBSYSTEMS=="input", ATTRS{uniq}=="ce:da:84:14:a5:40", SYMLINK+="input/by-id/bluetooth-sofle-keyboard"
+    KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="input", OPTIONS+="static_node=uinput", TAG+="uaccess"
+    KERNEL=="uhid", GROUP="input", MODE="0660", TAG+="uaccess"
+    KERNEL=="hidraw*",   ATTRS{name}=="Wolf PS5 (virtual) pad", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
+    SUBSYSTEMS=="input", ATTRS{name}=="Wolf X-Box One (virtual) pad", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
+    SUBSYSTEMS=="input", ATTRS{name}=="Wolf PS5 (virtual) pad", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
+    SUBSYSTEMS=="input", ATTRS{name}=="Wolf gamepad (virtual) motion sensors", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
+    SUBSYSTEMS=="input", ATTRS{name}=="Wolf Nintendo (virtual) pad", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
   '';
 
   # --- Armazenamento e File Systems ---
@@ -123,27 +146,39 @@ in
     }
   ];
 
+  programs.fuse.enable = true;
   services.fstrim.enable = true;
   services.udisks2.enable = true;
   hardware.block.scheduler."nvme[0-9]*" = "kyber";
   systemd.tmpfiles.rules = [ "d /mnt/games 0755 enzo users -" ];
 
   # --- Rede e Segurança ---
+  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
   networking.hostName = "ignis-nix";
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+    plugins = with pkgs; [
+      networkmanager-openvpn
+    ];
+  };
   networking.nftables.enable = true;
 
   networking.nat = {
     enable = true;
     externalInterface = "enp3s0";
+    #externalInterface = "enp117s0f3u1";
     internalInterfaces = [ "wlp4s0" ];
   };
-  services.tailscale.enable = true;
+  services.tailscale.enable = false;
   services.dnsmasq = {
     enable = true;
     settings = {
       interface = "wlp4s0";
       dhcp-range = "192.168.10.10,192.168.10.50,12h";
+      dhcp-option = [
+        "3,192.168.10.1"
+        "6,8.8.8.8,1.1.1.1"
+      ];
     };
   };
   systemd.services.tailscaled.serviceConfig.Environment = [ "TS_DEBUG_FIREWALL_MODE=nftables" ];
@@ -162,8 +197,33 @@ in
 
   networking.firewall = {
     enable = true;
-    trustedInterfaces = [ "tailscale0" ];
-    allowedUDPPorts = [ config.services.tailscale.port ];
+    trustedInterfaces = [
+      "tailscale0"
+      "wlp4s0"
+    ];
+    allowedUDPPorts = [
+      config.services.tailscale.port
+      5201
+      10400
+      10401
+      27031
+      27036
+      25565
+      48998
+      47999
+      48000
+      48100
+      48200
+    ];
+    allowedTCPPorts = [
+      5201
+      27036
+      27037
+      25565
+      47984
+      47989
+      48010
+    ];
     allowedTCPPortRanges = [
       {
         from = 1714;
@@ -240,13 +300,14 @@ in
   services.power-profiles-daemon.enable = true;
   services.scx = {
     enable = true;
-    scheduler = "scx_bpfland";
+    scheduler = "scx_lavd";
   };
 
   services.openssh.enable = true;
   services.flatpak.enable = true;
 
   # --- Interface e Ambiente de Desktop ---
+  services.desktopManager.plasma6.enable = true;
   programs.niri.enable = true;
   programs.xwayland.enable = true;
 
@@ -310,8 +371,8 @@ in
     protontricks.enable = true;
     extraCompatPackages = with pkgs; [
       proton-ge-bin
-      proton-ge-rtsp-bin
     ];
+    extraPackages = [ pkgs.sdl2-compat ];
   };
 
   programs.gamemode = {
@@ -330,11 +391,16 @@ in
     steam.importOXRRuntimes = true;
     package = (pkgs.wivrn.override { cudaSupport = true; });
   };
+  programs.alvr = {
+    enable = true;
+    openFirewall = true;
+  };
 
   # --- Pacotes e Wrappers ---
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
     wayvr
+    xrizer
     android-tools
     xrizer
     waypipe
@@ -356,8 +422,11 @@ in
     iw
     haveged
     hostapd
+    iperf3
     lsfg-vk
     lsfg-vk-ui
+    inputs.helium.packages.${system}.default
+    openvpn
   ];
 
   programs.gnupg.agent = {
