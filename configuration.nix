@@ -169,7 +169,7 @@ in
     #externalInterface = "enp117s0f3u1";
     internalInterfaces = [ "wlp4s0" ];
   };
-  services.tailscale.enable = false;
+  services.tailscale.enable = true;
   services.dnsmasq = {
     enable = true;
     settings = {
@@ -245,6 +245,38 @@ in
     };
   };
 
+  services.samba = {
+    enable = true;
+    securityType = "user";
+    openFirewall = true;
+    settings = {
+      "games" = {
+        "path" = "/mnt/games/";
+        "browseable" = "yes";
+        "read only" = "no";
+        "guest ok" = "no";
+        "create mask" = "0644";
+        "directory mask" = "0755";
+        "force user" = "enzo";
+      };
+      "home-enzo" = {
+        "path" = "/home/enzo/";
+        "browseable" = "yes";
+        "read only" = "no";
+        "guest ok" = "no";
+        "create mask" = "0644";
+        "directory mask" = "0755";
+        "force user" = "enzo";
+      };
+    };
+  };
+  services.samba-wsdd = {
+    enable = true;
+    openFirewall = true;
+  };
+
+  networking.firewall.allowPing = true;
+
   # --- Localização e Internacionalização ---
   time.timeZone = "America/Sao_Paulo";
   time.hardwareClockInLocalTime = true;
@@ -308,6 +340,7 @@ in
 
   # --- Interface e Ambiente de Desktop ---
   services.desktopManager.plasma6.enable = true;
+  services.desktopManager.cosmic.enable = true;
   programs.niri.enable = true;
   programs.xwayland.enable = true;
 
@@ -315,7 +348,7 @@ in
     enable = true;
     quickshell.package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
     systemd = {
-      enable = true;
+      enable = false;
       restartIfChanged = true;
     };
     enableSystemMonitoring = true;
@@ -399,6 +432,7 @@ in
   # --- Pacotes e Wrappers ---
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
+    libappindicator
     wayvr
     xrizer
     android-tools

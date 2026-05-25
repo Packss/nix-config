@@ -36,6 +36,18 @@
     options = [ "subvol=@nixos-home" ];
   };
 
+  fileSystems."/mnt/games" = {
+    device = "/dev/disk/by-uuid/4eb277c2-bfa6-4a7a-9b27-ef4d43b1f8ff";
+    fsType = "btrfs";
+    options = [ "subvol=@games" ];
+  };
+
+  fileSystems."/mnt/projects" = {
+    device = "/dev/disk/by-uuid/4eb277c2-bfa6-4a7a-9b27-ef4d43b1f8ff";
+    fsType = "btrfs";
+    options = [ "subvol=@projects" ];
+  };
+
   fileSystems."/boot" = {
     device = "/dev/disk/by-uuid/E180-AB72";
     fsType = "vfat";
