@@ -163,20 +163,28 @@ in
   };
   networking.nftables.enable = true;
 
+  networking.interfaces.wlp4s0 = {
+    ipv4.addresses = [
+      {
+        address = "192.168.50.1";
+        prefixLength = 24;
+      }
+    ];
+  };
   networking.nat = {
-    enable = true;
+    enable = false;
     externalInterface = "enp3s0";
     #externalInterface = "enp117s0f3u1";
     internalInterfaces = [ "wlp4s0" ];
   };
   services.tailscale.enable = true;
   services.dnsmasq = {
-    enable = true;
+    enable = false;
     settings = {
       interface = "wlp4s0";
-      dhcp-range = "192.168.10.10,192.168.10.50,12h";
+      dhcp-range = [ "192.168.50.10,192.168.50.250,255.255.255.0,12h" ];
       dhcp-option = [
-        "3,192.168.10.1"
+        "3,192.168.50.1"
         "6,8.8.8.8,1.1.1.1"
       ];
     };
@@ -245,11 +253,30 @@ in
     };
   };
 
+  systemd.services.smbd = {
+    serviceConfig = {
+      # 1. Turn off strict home directory masking for this service
+      ProtectHome = "no";
+
+      # 2. Ensure any mounts made on the host propagate down into the service namespace
+      MountFlags = "shared";
+
+      # 3. Alternatively, if it still hides the mount, explicitly include your path:
+      ReadWritePaths = [
+        "/home/enzo/"
+        "/mnt/games/"
+      ];
+      BindPaths = [ "/home/enzo/Vaults/Vault/:/home/enzo/mnt/" ];
+    };
+  };
   services.samba = {
     enable = true;
     securityType = "user";
     openFirewall = true;
     settings = {
+      global = {
+        "unix extensions" = "no";
+      };
       "games" = {
         "path" = "/mnt/games/";
         "browseable" = "yes";
@@ -267,6 +294,8 @@ in
         "create mask" = "0644";
         "directory mask" = "0755";
         "force user" = "enzo";
+        "follow symlinks" = "yes";
+        "wide links" = "yes";
       };
     };
   };
@@ -332,7 +361,7 @@ in
   services.power-profiles-daemon.enable = true;
   services.scx = {
     enable = true;
-    scheduler = "scx_lavd";
+    scheduler = "scx_bpfland";
   };
 
   services.openssh.enable = true;
@@ -417,21 +446,10 @@ in
     capSysNice = false;
   };
 
-  services.wivrn = {
-    enable = true;
-    highPriority = true;
-    openFirewall = true;
-    steam.importOXRRuntimes = true;
-    package = (pkgs.wivrn.override { cudaSupport = true; });
-  };
-  programs.alvr = {
-    enable = true;
-    openFirewall = true;
-  };
-
   # --- Pacotes e Wrappers ---
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
+    cage
     libappindicator
     wayvr
     xrizer
