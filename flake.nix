@@ -9,6 +9,7 @@
     acer-predator.url = "github:Packss/acer-kb-module-flake";
     # linux-nitrosense.url = "github:Packss/linux-nitrosense-rust";
     linux-nitrosense.url = "path:/mnt/projects/build/linux-nitrosense-rust";
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel";
     helium = {
       url = "github:AlvaroParker/helium-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -24,6 +25,7 @@
       nixpkgs-xr,
       acer-predator,
       linux-nitrosense,
+      nix-cachyos-kernel,
       helium,
       ...
     }@inputs:
@@ -31,6 +33,12 @@
       nixosConfigurations.ignis-nix = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
         modules = [
+          (
+            { pkgs, ... }:
+            {
+              nixpkgs.overlays = [ nix-cachyos-kernel.overlays.pinned ];
+            }
+          )
           acer-predator.nixosModules.default
           {
             hardware.acer-predator.enable = true;

@@ -19,12 +19,15 @@ in
   ];
   nixpkgs.config.allowUnfree = true;
   system.stateVersion = "25.11";
+  nix.settings.substituters = [ "https://attic.xuyh0120.win/lantian" ];
+  nix.settings.trusted-public-keys = [ "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc=" ];
 
   # --- Boot e Kernel ---
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.systemd.enable = true;
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
+  #boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelParams = [
     "acpi_backlight=native"
     "zswap.enabled=1"
@@ -32,7 +35,10 @@ in
     "zswap.shrinker_enabled=1"
     "pcie_aspm=off"
   ];
-  boot.kernelModules = [ "fuse" ];
+  boot.kernelModules = [
+    "fuse"
+    "ntsync"
+  ];
 
   boot.extraModprobeConfig = ''
     options mt7921e disable_aspm=1
@@ -64,12 +70,12 @@ in
     nvidiaSettings = true;
     #package = config.boot.kernelPackages.nvidiaPackages.
     package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
-      version = "595.71.05";
-      sha256_64bit = "sha256-NiA7iWC35JyKQva6H1hjzeNKBek9KyS3mK8G3YRva4I=";
+      version = "610.43.02";
+      sha256_64bit = "sha256-MDSgVLtM33dS/43CclZMsQVROAS/9TU4lFkBsWyndGM=";
       sha256_aarch64 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-      openSha256 = "sha256-Lfz71QWKM6x/jD2B22SWpUi7/og30HRlXg1kL3EWzEw=";
-      settingsSha256 = "sha256-mXnf3jyvznfB3OfKd657rxv0rYHQb/dX/Riw/+N9EKU=";
-      persistencedSha256 = "sha256-Z/6IvEEa/XfZ5F5qoSIPvXJLGtscYVqjFxHZaN/M2Ts=";
+      openSha256 = "sha256-hP5NVZZ4vGsACHLmUDKq4uckpd/kn1GxCSYnnJfAuBs=";
+      settingsSha256 = "sha256-0YAhufRgjDW+uR+kjaTb154fibpcDw8QowfrucoZsKE=";
+      persistencedSha256 = "sha256-Whgv9X+v2fRhzliOl2LzltY9v1SxDafFfv3IUPqj/hk=";
     };
   };
 
@@ -139,6 +145,21 @@ in
     ];
   };
 
+  fileSystems."/media/gamedisk" = {
+    device = "/dev/nvme0n1p4";
+    fsType = "lowntfs-3g";
+    options = [
+      "nofail"
+      "x-gvfs-show"
+      "uid=1000"
+      "gid=100"
+      "rw"
+      "user"
+      "exec"
+      "umask=000"
+    ];
+  };
+
   swapDevices = [
     {
       device = "/var/lib/swapfile";
@@ -172,7 +193,7 @@ in
     ];
   };
   networking.nat = {
-    enable = false;
+    enable = true;
     externalInterface = "enp3s0";
     #externalInterface = "enp117s0f3u1";
     internalInterfaces = [ "wlp4s0" ];
@@ -222,6 +243,7 @@ in
       48000
       48100
       48200
+      9757
     ];
     allowedTCPPorts = [
       5201
@@ -231,6 +253,7 @@ in
       47984
       47989
       48010
+      9757
     ];
     allowedTCPPortRanges = [
       {
@@ -368,7 +391,6 @@ in
   services.flatpak.enable = true;
 
   # --- Interface e Ambiente de Desktop ---
-  services.desktopManager.plasma6.enable = true;
   services.desktopManager.cosmic.enable = true;
   programs.niri.enable = true;
   programs.xwayland.enable = true;
@@ -427,7 +449,7 @@ in
 
   # --- Gaming e Ferramentas ---
   programs.steam = {
-    enable = true;
+    enable = false;
     remotePlay.openFirewall = true;
     gamescopeSession.enable = true;
     protontricks.enable = true;
@@ -449,6 +471,9 @@ in
   # --- Pacotes e Wrappers ---
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
+    gnome-disk-utility
+    steam-run
+    ntfs3g
     cage
     libappindicator
     wayvr
@@ -479,6 +504,7 @@ in
     lsfg-vk-ui
     inputs.helium.packages.${system}.default
     openvpn
+    ntfsprogs-plus
   ];
 
   programs.gnupg.agent = {
