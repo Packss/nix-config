@@ -412,6 +412,8 @@ in
   services.displayManager.dms-greeter = {
     enable = true;
     compositor.name = "niri";
+    configHome = "/home/enzo";
+    quickshell.package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
   };
 
   xdg.portal = {
