@@ -9,7 +9,9 @@
     acer-predator.url = "github:Packss/acer-kb-module-flake";
     # linux-nitrosense.url = "github:Packss/linux-nitrosense-rust";
     linux-nitrosense.url = "path:/mnt/projects/build/linux-nitrosense-rust";
+    dmemcg-booster.url = "path:/mnt/projects/build/dmemcg-booster";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel";
+    stability-matrix-nix.url = "github:SmarakNayak/stability-matrix-nix";
     helium = {
       url = "github:AlvaroParker/helium-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -25,6 +27,7 @@
       nixpkgs-xr,
       acer-predator,
       linux-nitrosense,
+      dmemcg-booster,
       nix-cachyos-kernel,
       helium,
       ...
@@ -46,6 +49,11 @@
           linux-nitrosense.nixosModules.default
           {
             services.linux-nitrosense.enable = true;
+          }
+          dmemcg-booster.nixosModules.default
+          {
+            services.dmemcg-booster.enable = true;
+            services.dmemcg-booster.startAtBoot = true;
           }
           nixpkgs-xr.nixosModules.nixpkgs-xr
           ./configuration.nix

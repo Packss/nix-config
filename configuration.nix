@@ -505,6 +505,7 @@ in
     lsfg-vk
     lsfg-vk-ui
     inputs.helium.packages.${system}.default
+    inputs.stability-matrix-nix.packages.${system}.default
     openvpn
     ntfsprogs-plus
   ];
