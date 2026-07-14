@@ -19,8 +19,14 @@ in
   ];
   nixpkgs.config.allowUnfree = true;
   system.stateVersion = "25.11";
-  nix.settings.substituters = [ "https://attic.xuyh0120.win/lantian" ];
-  nix.settings.trusted-public-keys = [ "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc=" ];
+  nix.settings.substituters = [
+    "https://attic.xuyh0120.win/lantian"
+    "https://noctalia.cachix.org"
+  ];
+  nix.settings.trusted-public-keys = [
+    "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
+    "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+  ];
 
   # --- Boot e Kernel ---
   boot.loader.systemd-boot.enable = true;
@@ -341,20 +347,6 @@ in
   environment.sessionVariables.TZ = "America/Sao_Paulo";
 
   # --- Usuários ---
-  users.users.samira = {
-    isNormalUser = true;
-    extraGroups = [
-      "i2c"
-      "wheel"
-      "input"
-      "networkmanager"
-      "plugdev"
-      "libvirtd"
-      "kvm"
-      "video"
-      "render"
-    ];
-  };
 
   users.users.enzo = {
     isNormalUser = true;
@@ -392,12 +384,14 @@ in
 
   # --- Interface e Ambiente de Desktop ---
   services.desktopManager.cosmic.enable = true;
+  services.desktopManager.plasma6.enable = true;
   programs.niri.enable = true;
   programs.xwayland.enable = true;
 
   programs.dms-shell = {
-    enable = true;
-    quickshell.package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
+    enable = false;
+    #quickshell.package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
+    quickshell.package = pkgs.quickshell;
     systemd = {
       enable = false;
       restartIfChanged = true;
@@ -409,16 +403,17 @@ in
     enableClipboardPaste = true;
   };
 
+  services.displayManager.sddm.enable = true;
   services.displayManager.dms-greeter = {
-    enable = true;
+    enable = false;
     compositor.name = "niri";
     configHome = "/home/enzo";
-    quickshell.package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
+    #quickshell.package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
+    quickshell.package = pkgs.quickshell;
   };
 
   xdg.portal = {
     enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gnome ];
   };
 
   fonts.packages = with pkgs; [
@@ -467,12 +462,16 @@ in
   };
   programs.gamescope = {
     enable = true;
-    capSysNice = false;
+    capSysNice = true;
   };
+
+  programs.gpu-screen-recorder.enable = true;
 
   # --- Pacotes e Wrappers ---
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
+    tesseract
+    adw-gtk3
     gnome-disk-utility
     steam-run
     ntfs3g
@@ -508,6 +507,7 @@ in
     inputs.stability-matrix-nix.packages.${system}.default
     openvpn
     ntfsprogs-plus
+    inputs.noctalia.packages.${system}.default
   ];
 
   programs.gnupg.agent = {

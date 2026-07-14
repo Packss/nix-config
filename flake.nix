@@ -12,6 +12,10 @@
     dmemcg-booster.url = "path:/mnt/projects/build/dmemcg-booster";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel";
     stability-matrix-nix.url = "github:SmarakNayak/stability-matrix-nix";
+    noctalia = {
+      url = "github:noctalia-dev/noctalia/cachix";
+      inputs.nixpkgs.follows = "nixpkgs"; # this line is optional, prevents downloading two versions of nixpkgs but disables cache
+    };
     helium = {
       url = "github:AlvaroParker/helium-nix";
       inputs.nixpkgs.follows = "nixpkgs";
