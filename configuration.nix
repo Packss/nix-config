@@ -28,6 +28,12 @@ in
     "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
   ];
 
+  programs.ccache.enable = true;
+  programs.ccache.packageNames = [
+    "linuxPackages-cachyos-latest"
+    "cachyosKernels.linuxPackages-cachyos-latest"
+  ];
+
   # --- Boot e Kernel ---
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -76,12 +82,12 @@ in
     nvidiaSettings = true;
     #package = config.boot.kernelPackages.nvidiaPackages.
     package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
-      version = "610.43.02";
-      sha256_64bit = "sha256-MDSgVLtM33dS/43CclZMsQVROAS/9TU4lFkBsWyndGM=";
+      version = "610.43.03";
+      sha256_64bit = "sha256-ReLUwTSiPDXlDyU6SqY+fl6NF+PRhdSgfIpY6WEu05I=";
       sha256_aarch64 = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-      openSha256 = "sha256-hP5NVZZ4vGsACHLmUDKq4uckpd/kn1GxCSYnnJfAuBs=";
-      settingsSha256 = "sha256-0YAhufRgjDW+uR+kjaTb154fibpcDw8QowfrucoZsKE=";
-      persistencedSha256 = "sha256-Whgv9X+v2fRhzliOl2LzltY9v1SxDafFfv3IUPqj/hk=";
+      openSha256 = "sha256-QCXmqo2xNyIwjGv0da2MUC8ex641Mmc5DUI+uRFVwgE=";
+      settingsSha256 = "sha256-z/t+SdEQdVJPwjKIRHO02d264Kt47eWiOwwsaxmh4xQ=";
+      persistencedSha256 = "sha256-sOKUsAFHh0/COH+nNgbH9+7hWgivOzq4YmTuk9MOFfI=";
     };
   };
 
@@ -94,18 +100,9 @@ in
     nvidiaBusId = "PCI:1:0:0";
   };
 
-  services.lact.enable = true;
+  services.lact.enable = false;
 
-  services.udev.extraRules = ''
-    KERNEL=="event[0-9]*", SUBSYSTEM=="input", SUBSYSTEMS=="input", ATTRS{uniq}=="ce:da:84:14:a5:40", SYMLINK+="input/by-id/bluetooth-sofle-keyboard"
-    KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="input", OPTIONS+="static_node=uinput", TAG+="uaccess"
-    KERNEL=="uhid", GROUP="input", MODE="0660", TAG+="uaccess"
-    KERNEL=="hidraw*",   ATTRS{name}=="Wolf PS5 (virtual) pad", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
-    SUBSYSTEMS=="input", ATTRS{name}=="Wolf X-Box One (virtual) pad", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
-    SUBSYSTEMS=="input", ATTRS{name}=="Wolf PS5 (virtual) pad", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
-    SUBSYSTEMS=="input", ATTRS{name}=="Wolf gamepad (virtual) motion sensors", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
-    SUBSYSTEMS=="input", ATTRS{name}=="Wolf Nintendo (virtual) pad", GROUP="root", MODE="0660", ENV{ID_SEAT}="seat9"
-  '';
+  services.udev.extraRules = builtins.readFile ./udev-rules;
 
   # --- Armazenamento e File Systems ---
   fileSystems."/".options = [
@@ -386,6 +383,18 @@ in
   services.desktopManager.cosmic.enable = true;
   services.desktopManager.plasma6.enable = true;
   programs.niri.enable = true;
+  programs.niri.package = pkgs.niri.override {
+    libdisplay-info = pkgs.libdisplay-info.overrideAttrs (finalAttrs: {
+      version = "0.3.0";
+      src = pkgs.fetchFromGitLab {
+        domain = "gitlab.freedesktop.org";
+        owner = "emersion";
+        repo = "libdisplay-info";
+        rev = finalAttrs.version;
+        sha256 = "sha256-nXf2KGovNKvcchlHlzKBkAOeySMJXgxMpbi5z9gLrdc=";
+      };
+    });
+  };
   programs.xwayland.enable = true;
 
   programs.dms-shell = {
@@ -403,9 +412,9 @@ in
     enableClipboardPaste = true;
   };
 
-  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm.enable = false;
   services.displayManager.dms-greeter = {
-    enable = false;
+    enable = true;
     compositor.name = "niri";
     configHome = "/home/enzo";
     #quickshell.package = inputs.quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
@@ -471,6 +480,9 @@ in
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
     tesseract
+    jay
+    mako
+    bemenu
     adw-gtk3
     gnome-disk-utility
     steam-run
@@ -502,7 +514,6 @@ in
     hostapd
     iperf3
     lsfg-vk
-    lsfg-vk-ui
     inputs.helium.packages.${system}.default
     inputs.stability-matrix-nix.packages.${system}.default
     openvpn

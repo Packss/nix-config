@@ -24,6 +24,11 @@
       url = "git+https://git.outfoxxed.me/quickshell/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    lsfg-vk = {
+      url = "github:Daaboulex/lsfg-vk-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
   outputs =
     {
@@ -34,6 +39,7 @@
       dmemcg-booster,
       nix-cachyos-kernel,
       helium,
+      lsfg-vk,
       ...
     }@inputs:
     {
@@ -43,7 +49,10 @@
           (
             { pkgs, ... }:
             {
-              nixpkgs.overlays = [ nix-cachyos-kernel.overlays.pinned ];
+              nixpkgs.overlays = [
+                nix-cachyos-kernel.overlays.pinned
+                inputs.lsfg-vk.overlays.default
+              ];
             }
           )
           acer-predator.nixosModules.default
