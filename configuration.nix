@@ -338,7 +338,9 @@ in
 
   # --- Usuários ---
 
+  programs.zsh.enable = true;
   users.users.enzo = {
+    shell = pkgs.zsh;
     isNormalUser = true;
     extraGroups = [
       "i2c"
@@ -494,7 +496,6 @@ in
     haveged
     hostapd
     iperf3
-    lsfg-vk
     inputs.helium.packages.${system}.default
     inputs.stability-matrix-nix.packages.${system}.default
     openvpn
