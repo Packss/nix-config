@@ -69,7 +69,7 @@ in
     enable = true;
     powerOnBoot = true;
   };
-
+  services.fwupd.enable = true;
   services.xserver.videoDrivers = [
     "amdgpu"
     "nvidia"
@@ -376,7 +376,6 @@ in
 
   # --- Interface e Ambiente de Desktop ---
   services.desktopManager.cosmic.enable = true;
-  services.desktopManager.plasma6.enable = true;
   programs.niri.enable = true;
   programs.xwayland.enable = true;
 
@@ -395,7 +394,6 @@ in
     enableClipboardPaste = true;
   };
 
-  services.displayManager.sddm.enable = false;
   services.displayManager.dms-greeter = {
     enable = true;
     compositor.name = "niri";
