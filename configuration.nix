@@ -78,6 +78,7 @@ in
     modesetting.enable = true;
     powerManagement.enable = true;
     powerManagement.finegrained = true;
+    dynamicBoost.enable = true;
     open = true;
     nvidiaSettings = true;
     #package = config.boot.kernelPackages.nvidiaPackages.
@@ -93,7 +94,7 @@ in
     nvidiaBusId = "PCI:1:0:0";
   };
 
-  services.lact.enable = false;
+  services.lact.enable = true;
 
   services.udev.extraRules = builtins.readFile ./udev-rules;
 
@@ -376,6 +377,8 @@ in
 
   # --- Interface e Ambiente de Desktop ---
   services.desktopManager.cosmic.enable = true;
+  services.desktopManager.plasma6.enable = true;
+  services.displayManager.defaultSession = lib.mkForce "jay";
   programs.niri.enable = true;
   programs.xwayland.enable = true;
 
@@ -394,6 +397,7 @@ in
     enableClipboardPaste = true;
   };
 
+  services.displayManager.sessionPackages = [ pkgs.jay ];
   services.displayManager.dms-greeter = {
     enable = true;
     compositor.name = "niri";
@@ -474,7 +478,6 @@ in
     xrizer
     android-tools
     xrizer
-    waypipe
     qemu
     ryzenadj
     ddcutil
@@ -499,6 +502,8 @@ in
     openvpn
     ntfsprogs-plus
     inputs.noctalia.packages.${system}.default
+    lsfg-vk
+    lsfg-vk-ui
   ];
 
   programs.gnupg.agent = {

@@ -5,13 +5,31 @@
     # i.e. nixos-24.11
     # Use `nix flake update` to update the flake to the latest revision of the chosen release channel.
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-xr.url = "github:nix-community/nixpkgs-xr";
-    acer-predator.url = "github:Packss/acer-kb-module-flake";
+    nixpkgs-xr = {
+      url = "github:nix-community/nixpkgs-xr";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    acer-predator = {
+      url = "github:Packss/acer-kb-module-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # linux-nitrosense.url = "github:Packss/linux-nitrosense-rust";
-    linux-nitrosense.url = "path:/mnt/projects/build/linux-nitrosense-rust";
-    dmemcg-booster.url = "path:/mnt/projects/build/dmemcg-booster";
-    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel";
-    stability-matrix-nix.url = "github:SmarakNayak/stability-matrix-nix";
+    linux-nitrosense = {
+      url = "path:/mnt/projects/build/linux-nitrosense-rust";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    dmemcg-booster = {
+      url = "path:/mnt/projects/build/dmemcg-booster";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-cachyos-kernel = {
+      url = "github:xddxdd/nix-cachyos-kernel";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    stability-matrix-nix = {
+      url = "github:SmarakNayak/stability-matrix-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     noctalia = {
       url = "github:noctalia-dev/noctalia/cachix";
       inputs.nixpkgs.follows = "nixpkgs"; # this line is optional, prevents downloading two versions of nixpkgs but disables cache
