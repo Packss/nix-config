@@ -339,9 +339,10 @@ in
 
   # --- Usuários ---
 
+  programs.fish.enable = true;
   programs.zsh.enable = true;
   users.users.enzo = {
-    shell = pkgs.zsh;
+    shell = pkgs.fish;
     isNormalUser = true;
     extraGroups = [
       "i2c"
@@ -464,6 +465,7 @@ in
   # --- Pacotes e Wrappers ---
   environment.localBinInPath = true;
   environment.systemPackages = with pkgs; [
+    libratbag
     tesseract
     jay
     mako
@@ -504,6 +506,7 @@ in
     inputs.noctalia.packages.${system}.default
     lsfg-vk
     lsfg-vk-ui
+    quickshell
   ];
 
   programs.gnupg.agent = {
