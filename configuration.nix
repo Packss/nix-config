@@ -441,7 +441,7 @@ in
 
   # --- Gaming e Ferramentas ---
   programs.steam = {
-    enable = false;
+    enable = true;
     remotePlay.openFirewall = true;
     gamescopeSession.enable = true;
     protontricks.enable = true;
