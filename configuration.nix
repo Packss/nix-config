@@ -468,7 +468,6 @@ in
     libratbag
     tesseract
     jay
-    mako
     bemenu
     adw-gtk3
     gnome-disk-utility
