@@ -46,6 +46,7 @@ in
     "zswap.max_pool_percent=20"
     "zswap.shrinker_enabled=1"
     "pcie_aspm=off"
+    "clearcpuid=514"
   ];
   boot.kernelModules = [
     "fuse"
@@ -82,7 +83,14 @@ in
     open = true;
     nvidiaSettings = true;
     #package = config.boot.kernelPackages.nvidiaPackages.
-    package = config.boot.kernelPackages.nvidiaPackages.latest;
+    #package = config.boot.kernelPackages.nvidiaPackages.latest;
+    package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+      version = "615.71.09";
+      sha256_64bit = "sha256-zc7tIrvrYSSNGm3qvCWWZz46ZQFpjucayNL9wo87cP4=";
+      openSha256 = "sha256-3gByMYIwFzRaLdDG+roCEOuKRRJDrljG9AlLnRZTirM=";
+      settingsSha256 = "sha256-LK1LU8mDkM/XVRKPBtuOZh9nIP/lGFLAJnmasEX8jhg=";
+      persistencedSha256 = "sha256-qPRb+3d88+2RcpUkoBTbjIaImnQ+jX+/6p1vXcJ5geE=";
+    };
   };
 
   hardware.nvidia.prime = {
@@ -226,6 +234,7 @@ in
     trustedInterfaces = [
       "tailscale0"
       "wlp4s0"
+      "virbr0"
     ];
     allowedUDPPorts = [
       config.services.tailscale.port
@@ -391,11 +400,9 @@ in
       enable = false;
       restartIfChanged = true;
     };
-    enableSystemMonitoring = true;
     enableVPN = true;
     enableDynamicTheming = true;
     enableAudioWavelength = true;
-    enableClipboardPaste = true;
   };
 
   services.displayManager.sessionPackages = [ pkgs.jay ];
@@ -437,6 +444,16 @@ in
   programs.appimage = {
     enable = true;
     binfmt = true;
+  };
+
+  virtualisation.spiceUSBRedirection.enable = true;
+  virtualisation.libvirtd = {
+    enable = true;
+    qemu = {
+      package = pkgs.qemu_kvm;
+      runAsRoot = true;
+      swtpm.enable = true;
+    };
   };
 
   # --- Gaming e Ferramentas ---
@@ -529,16 +546,6 @@ in
       "mdev"
       "vfio-pci.ids=10de:24a0,10de:228b"
     ];
-
-    virtualisation.spiceUSBRedirection.enable = true;
-    virtualisation.libvirtd = {
-      enable = true;
-      qemu = {
-        package = pkgs.qemu_kvm;
-        runAsRoot = true;
-        swtpm.enable = true;
-      };
-    };
 
     systemd.tmpfiles.rules = [ ''f /dev/shm/kvmfr-* 0660 "enzo" kvm -'' ];
 

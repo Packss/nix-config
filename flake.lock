@@ -28,8 +28,8 @@
         ]
       },
       "locked": {
-        "lastModified": 1783185064,
-        "narHash": "sha256-85m57jXcrq7FTYQRTK9QukqVgj6LitdrvzWvG1UYn/A=",
+        "lastModified": 1789317443,
+        "narHash": "sha256-7GLWeVg9EwNXNoby783ytBEzL0O1Zzczw0RByLwvm/s=",
         "path": "/mnt/projects/build/dmemcg-booster",
         "type": "path"
       },
@@ -278,11 +278,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788943692,
-        "narHash": "sha256-YFXk6tlB7jz92+GSj4UX+wggfrDrFIb6L4jsydS8JNc=",
+        "lastModified": 1789598623,
+        "narHash": "sha256-Gyoep6W7TkJIbkamWmvC4db7XXddJl0qXz4MjapMSDo=",
         "owner": "AlvaroParker",
         "repo": "helium-nix",
-        "rev": "d236169ee6045ee83242de53f9b87b6d223c26c9",
+        "rev": "402d27618c288f5e5171d4f1601b09b796f14436",
         "type": "github"
       },
       "original": {
@@ -319,11 +319,11 @@
         "std": "std"
       },
       "locked": {
-        "lastModified": 1788950322,
-        "narHash": "sha256-C/U+dfpDtlVwO9aQvMUXEGqGhYyibakMQbYIupjxCdg=",
+        "lastModified": 1789642247,
+        "narHash": "sha256-aAvU6Yfn/ONVT+af7+GLUNqlsVgjFaWhxaNeUTvocl0=",
         "owner": "Daaboulex",
         "repo": "lsfg-vk-nix",
-        "rev": "7fc8dce7dda1777978c07fb7a3decd80dc38dd8f",
+        "rev": "b9b5fd3c7bb02f18a5ff4947eabbc0d7b86f881f",
         "type": "github"
       },
       "original": {
@@ -341,11 +341,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788984074,
-        "narHash": "sha256-3U+q8DCRoMtBS5Bq+8eXzaRraHl/WlGFi3p4TPJId2o=",
+        "lastModified": 1789677192,
+        "narHash": "sha256-hTkWPPUyxnQgwcC2bRSGqOjrQQy3ZWPzZ/Ii74nbL3w=",
         "owner": "xddxdd",
         "repo": "nix-cachyos-kernel",
-        "rev": "590f8bf4db1391dc75dbd5f95721cabf7ac9f02a",
+        "rev": "5a1c02fd24729fc624cc0615daa347f4b625c5c5",
         "type": "github"
       },
       "original": {
@@ -356,11 +356,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1789006805,
-        "narHash": "sha256-xB8mKMOx1IA9vTDNLmJZ6n4wCMq/cuWBBOzGCRnqxrU=",
+        "lastModified": 1789684949,
+        "narHash": "sha256-ZKhUe/2IJUq1JhKxKMu8rbkgSGmPP2ZCqlIPn40aGCM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "8ce4ef6cb6f871616146b9fe26d2a5ae594e94fe",
+        "rev": "e554fab72f81915600f3f449b786fd9af40439a5",
         "type": "github"
       },
       "original": {
@@ -427,11 +427,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1789010175,
-        "narHash": "sha256-VKOoSuFTDOtC638pIX6RARZdyWks+yTcWskbK1DooyY=",
+        "lastModified": 1789701749,
+        "narHash": "sha256-5uPHRwT6QZjE26FFY8mSY0wvab+nxPfJG+oRIgUR/cQ=",
         "owner": "nix-community",
         "repo": "nixpkgs-xr",
-        "rev": "59c21bd79e43f4a81ca3b9eb07714a6b37323007",
+        "rev": "954f980ce3c50557936d104e0bedd3423fe027b3",
         "type": "github"
       },
       "original": {
@@ -447,11 +447,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789065747,
-        "narHash": "sha256-kX5eqD+MGMtGNRw6Y86eNTvC1zYUye49ESaiCXY9n0o=",
+        "lastModified": 1789735339,
+        "narHash": "sha256-KjnprW4lpS4ISCBnoNxlI9++LACjxlsQV7WWNT4cju8=",
         "owner": "noctalia-dev",
         "repo": "noctalia",
-        "rev": "0565d25c1d3f13c7432fd64d32d08e27dbaff444",
+        "rev": "960d4d46bd3149a556504e7c40ecd87abb251a36",
         "type": "github"
       },
       "original": {
@@ -498,11 +498,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787994703,
-        "narHash": "sha256-6SUZyyALo19heYPa/Xmu2H4zV+wvdfVX4fTcqbgHRnI=",
+        "lastModified": 1789461462,
+        "narHash": "sha256-J1n+c46qiTmV6gNDqndbhrfDR2R47QLXQNFrf1idTvM=",
         "ref": "refs/heads/master",
-        "rev": "2d3b3e9c70ef380dff751b61d334dc88df016c29",
-        "revCount": 856,
+        "rev": "c6a516096dd84d5255b409482eb4bf740b952f88",
+        "revCount": 860,
         "type": "git",
         "url": "https://git.outfoxxed.me/quickshell/quickshell"
       },
@@ -534,11 +534,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787983781,
-        "narHash": "sha256-TRibFI8wIJaDBq49eS+6HSXld27DwPSUEsrhQWgTJSk=",
+        "lastModified": 1789575761,
+        "narHash": "sha256-HloDjiWYio8YRvaHCDNVpanMzSrfYogBIflA99sjCGQ=",
         "owner": "SmarakNayak",
         "repo": "stability-matrix-nix",
-        "rev": "b4400b266c4ec739a7638c8fb934f974ccb8df7e",
+        "rev": "171ffbd613fdd32d495a1420adf0cc187720d767",
         "type": "github"
       },
       "original": {
