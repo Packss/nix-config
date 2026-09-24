@@ -400,9 +400,6 @@ in
       enable = false;
       restartIfChanged = true;
     };
-    enableVPN = true;
-    enableDynamicTheming = true;
-    enableAudioWavelength = true;
   };
 
   services.displayManager.sessionPackages = [ pkgs.jay ];
