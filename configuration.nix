@@ -102,6 +102,7 @@ in
     nvidiaBusId = "PCI:1:0:0";
   };
 
+  hardware.new-lg4ff.enable = true;
   services.lact.enable = true;
 
   services.udev.extraRules = builtins.readFile ./udev-rules;
@@ -334,6 +335,7 @@ in
   };
 
   networking.firewall.allowPing = true;
+  programs.firejail.enable = true;
 
   # --- Localização e Internacionalização ---
   time.timeZone = "America/Sao_Paulo";
@@ -520,6 +522,7 @@ in
     lsfg-vk
     lsfg-vk-ui
     quickshell
+    input-remapper
   ];
 
   programs.gnupg.agent = {
