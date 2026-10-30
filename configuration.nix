@@ -20,15 +20,15 @@ in
   nixpkgs.config.allowUnfree = true;
   system.stateVersion = "25.11";
   nix.settings.substituters = [
-    "https://attic.xuyh0120.win/lantian"
     "https://noctalia.cachix.org"
+    "https://cache.xinux.uz"
   ];
   nix.settings.trusted-public-keys = [
-    "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
     "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+    "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
   ];
 
-  programs.ccache.enable = true;
+  programs.ccache.enable = false;
   programs.ccache.packageNames = [
     "linuxPackages-cachyos-latest"
     "cachyosKernels.linuxPackages-cachyos-latest"
@@ -519,8 +519,6 @@ in
     openvpn
     ntfsprogs-plus
     inputs.noctalia.packages.${system}.default
-    lsfg-vk
-    lsfg-vk-ui
     quickshell
     input-remapper
   ];
