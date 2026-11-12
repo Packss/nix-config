@@ -396,9 +396,9 @@ in
   services.libinput.enable = true;
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;
-  services.scx = {
+  services.scx-loader = {
     enable = true;
-    scheduler = "scx_bpfland";
+    default_sched = "scx_bpfland";
   };
 
   services.openssh.enable = true;
