@@ -22,10 +22,12 @@ in
   nix.settings.substituters = [
     "https://noctalia.cachix.org"
     "https://cache.xinux.uz"
+    "https://cache.lantian.pub/lantian"
   ];
   nix.settings.trusted-public-keys = [
     "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     "cache.xinux.uz:BXCrtqejFjWzWEB9YuGB7X2MV4ttBur1N8BkwQRdH+0="
+    "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
   ];
 
   programs.ccache.enable = false;
@@ -37,7 +39,6 @@ in
   # --- Boot e Kernel ---
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.initrd.systemd.enable = true;
   boot.kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
   #boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelParams = [
@@ -55,6 +56,8 @@ in
 
   boot.extraModprobeConfig = ''
     options mt7921e disable_aspm=1
+    options mt7921e power_save=0
+    options mt7921_common disable_clc=1
   '';
 
   # --- Hardware e Gráficos ---
@@ -83,14 +86,14 @@ in
     open = true;
     nvidiaSettings = true;
     #package = config.boot.kernelPackages.nvidiaPackages.
-    #package = config.boot.kernelPackages.nvidiaPackages.latest;
-    package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
-      version = "615.71.09";
-      sha256_64bit = "sha256-zc7tIrvrYSSNGm3qvCWWZz46ZQFpjucayNL9wo87cP4=";
-      openSha256 = "sha256-3gByMYIwFzRaLdDG+roCEOuKRRJDrljG9AlLnRZTirM=";
-      settingsSha256 = "sha256-LK1LU8mDkM/XVRKPBtuOZh9nIP/lGFLAJnmasEX8jhg=";
-      persistencedSha256 = "sha256-qPRb+3d88+2RcpUkoBTbjIaImnQ+jX+/6p1vXcJ5geE=";
-    };
+    package = config.boot.kernelPackages.nvidiaPackages.latest;
+    #package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+    #version = "615.71.09";
+    #sha256_64bit = "sha256-zc7tIrvrYSSNGm3qvCWWZz46ZQFpjucayNL9wo87cP4=";
+    #openSha256 = "sha256-3gByMYIwFzRaLdDG+roCEOuKRRJDrljG9AlLnRZTirM=";
+    #settingsSha256 = "sha256-LK1LU8mDkM/XVRKPBtuOZh9nIP/lGFLAJnmasEX8jhg=";
+    #persistencedSha256 = "sha256-qPRb+3d88+2RcpUkoBTbjIaImnQ+jX+/6p1vXcJ5geE=";
+    #};
   };
 
   hardware.nvidia.prime = {
@@ -103,6 +106,7 @@ in
   };
 
   hardware.new-lg4ff.enable = true;
+  hardware.enableAllFirmware = true;
   services.lact.enable = true;
 
   services.udev.extraRules = builtins.readFile ./udev-rules;
@@ -180,13 +184,24 @@ in
   systemd.tmpfiles.rules = [ "d /mnt/games 0755 enzo users -" ];
 
   # --- Rede e Segurança ---
-  boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
   networking.hostName = "ignis-nix";
   networking.networkmanager = {
     enable = true;
+    wifi.backend = "iwd";
+    wifi.powersave = false;
+    wifi.scanRandMacAddress = false;
     plugins = with pkgs; [
       networkmanager-openvpn
     ];
+  };
+  networking.wireless.iwd.settings = {
+    General = {
+      AddressRandomization = "network";
+      EnableNetworkConfiguration = false;
+    };
+    Settings = {
+      AutoConnect = true;
+    };
   };
   networking.nftables.enable = true;
 
@@ -219,6 +234,8 @@ in
   systemd.services.tailscaled.serviceConfig.Environment = [ "TS_DEBUG_FIREWALL_MODE=nftables" ];
   systemd.network.wait-online.enable = false;
   boot.initrd.systemd.network.wait-online.enable = false;
+  systemd.services.NetworkManager-wait-online.enable = false;
+  virtualisation.docker.enableOnBoot = false;
 
   services.avahi = {
     enable = true;
@@ -461,9 +478,6 @@ in
     remotePlay.openFirewall = true;
     gamescopeSession.enable = true;
     protontricks.enable = true;
-    extraCompatPackages = with pkgs; [
-      proton-ge-bin
-    ];
     extraPackages = [ pkgs.sdl2-compat ];
   };
 
@@ -480,6 +494,9 @@ in
 
   # --- Pacotes e Wrappers ---
   environment.localBinInPath = true;
+  environment.etc = {
+    "ssl/cert.pem".source = "/etc/ssl/certs/ca-bundle.crt";
+  };
   environment.systemPackages = with pkgs; [
     libratbag
     tesseract
