@@ -398,7 +398,7 @@ in
   services.power-profiles-daemon.enable = true;
   services.scx-loader = {
     enable = true;
-    default_sched = "scx_bpfland";
+    config.default_sched = "scx_bpfland";
   };
 
   services.openssh.enable = true;
